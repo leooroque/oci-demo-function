@@ -8,7 +8,7 @@
         <fdk.version>1.0.108</fdk.version>
     </properties>
     <groupId>com.example.fn</groupId>
-    <artifactId>oci-list-instances</artifactId>
+    <artifactId>oci-demo-function</artifactId>
     <version>1.0.0</version>
 
     <repositories>

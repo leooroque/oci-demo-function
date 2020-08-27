@@ -44,7 +44,7 @@ fn update context oracle.compartment-id <compartment-ocid>
 fn update context api-url https://functions.sa-saopaulo-1.oci.oraclecloud.com
 ```
 ```
-fn update context registry gru.ocir.io/oraclemetodista/leonardo-demo
+fn update context registry sa-saopaulo-1.ocir.io/oraclemetodista/leonardo-demo
 ```
 
 Validando se a configuração do context está correta, podemos executar a listagem de apps.
