@@ -1,105 +1,74 @@
-# Function that returns the list of instances in the calling Compartment
-
-This function uses Resource Principals to securely authorize a function to make
-API calls to OCI services using the [OCI Java SDK](https://docs.cloud.oracle.com/iaas/tools/java/latest/).
-It returns a list of all instances within the compartment that calls the function.
-
-The function calls the following OCI Java SDK classes:
-* [ResourcePrincipalAuthenticationDetailsProvider](https://docs.cloud.oracle.com/en-us/iaas/tools/java/latest/com/oracle/bmc/auth/ResourcePrincipalAuthenticationDetailsProvider.html) to authenticate
-* [ComputeClient](https://docs.cloud.oracle.com/iaas/tools/java/latest/com/oracle/bmc/core/ComputeClient.html) to interact with Compute
-
-As you make your way through this tutorial, look out for this icon ![user input icon](../images/userinput.png).
-Whenever you see it, it's time for you to perform an action.
+# Configuração do Fn Project, Configuração do OCI Registry, Build da função, Deploy da função e Exemplo de Invoke.
 
 
-## Prerequisites
-
-Before you deploy this sample function, make sure you have run steps A, B 
-and C of the [Oracle Functions Quick Start Guide for Cloud Shell](https://www.oracle.com/webfolder/technetwork/tutorials/infographics/oci_functions_cloudshell_quickview/functions_quickview_top/functions_quickview/index.html)
-* A - Set up your tenancy
-* B - Create application
-* C - Set up your Cloud Shell dev environment
-
-
-## List Applications 
-
-Assuming you have successfully completed the prerequisites, you should see your 
-application in the list of applications.
+Após a instalação do fn project, podemos executá-lo da seguinte forma:
 
 ```
-fn ls apps
+fn start
 ```
 
-
-## Create or Update your Dynamic Group
-
-In order to use other OCI Services, your function must be part of a dynamic 
-group. For information on how to create a dynamic group, refer to the 
-[documentation](https://docs.cloud.oracle.com/iaas/Content/Identity/Tasks/managingdynamicgroups.htm#To).
-
-When specifying the *Matching Rules*, we suggest matching all functions in a compartment with:
+Para validar se o fn está rodando podemos executar o seguinte comando:
 
 ```
-ALL {resource.type = 'fnfunc', resource.compartment.id = 'ocid1.compartment.oc1..aaaaaxxxxx'}
+docker ps
 ```
 
+## Configurando Fn context
 
-## Create or Update IAM Policies
+Vamos configurar um registro apropriado para armazenar nossas imagens que servirão como base para rodar no docker.
 
-Create a new policy that allows the dynamic group to `inspect instances` in
-the functions related compartment.
+Para validar os contexts, podemos executar:
 
-![user input icon](../images/userinput.png)
-
-Your policy should look something like this:
 ```
-Allow dynamic-group <dynamic-group-name> to inspect instances in compartment <compartment-name>
+fn list context;
+````
+
 ```
-e.g.
-```
-Allow dynamic-group demo-func-dyn-group to inspect instances in compartment demo-func-compartment
+fn create context demo --provider oracle
 ```
 
-For more information on how to create policies, go [here](https://docs.cloud.oracle.com/iaas/Content/Identity/Concepts/policysyntax.htm).
-
-
-## Review and customize your function
-
-Review the following files in the current folder:
-- [pom.xml](./pom.xml) specifies all the dependencies for your function
-- [func.yaml](./func.yaml) that contains metadata about your function and declares properties
-- [src/main/java/com/example/fn/ComputeInstancesList.java](./src/main/java/com/example/fn/ComputeInstancesList.java) which contains the Java code
-
-The name of your function *oci-list-instances-java* is specified in [func.yaml](./func.yaml).
-
-
-## Deploy the function
-
-In Cloud Shell, run the *fn deploy* command to build the function and its dependencies as a Docker image, 
-push the image to the specified Docker registry, and deploy the function to Oracle Functions 
-in the application created earlier:
-
-![user input icon](../images/userinput.png)
 ```
-fn -v deploy --app <app-name>
-```
-e.g.
-```
-fn -v deploy --app myapp
+fn use context demo
 ```
 
+```
+fn update context oracle.profile DEFAULT
+```
+**Nesse cenário estamos utilizando o mesmo profile utilizado no OCI CLI**
 
-## Test
+```
+fn update context oracle.compartment-id <compartment-ocid>
+```
 
-Use the *fn* CLI to invoke your function with your app name and the compartment OCID:
+```
+fn update context api-url https://functions.sa-saopaulo-1.oci.oraclecloud.com
+```
+```
+fn update context registry gru.ocir.io/oraclemetodista/leonardo-demo
+```
 
-![user input icon](../images/userinput.png)
+Validando se a configuração do context está correta, podemos executar a listagem de apps.
+
 ```
-echo -n '<compartment-ocid>' | fn invoke <app-name> <function-name>
+fn list apps
 ```
-e.g.
+
+Podemos validar as configurações no diretório ~/.fn/contexts/ em arquivos .yaml.
+
+## Build da função
+
 ```
-echo -n 'ocid1.compartment.oc1...2jn3htfoobar' | fn invoke myapp oci-list-instances-java
+fn build -v
 ```
-You should see a map of instances in your compartment appear on your terminal.
-Key is the OCID of the instance and value is a String representation of the Instance object.
+
+## Deploy da função 
+
+```
+fn deploy -v --app <aplicacao-oracle>
+```
+
+## Invoke
+
+```
+echo -n <action> | fn invoke <aplicacao-oracle> <function> 
+```
